@@ -4,30 +4,45 @@ namespace App\Http\Controllers;
 
 use App\Models\Produk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProdukController extends Controller
 {
     public function index(Request $request)
     {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'kategori' => ['nullable', Rule::in(Produk::KATEGORI)],
+            'status' => ['nullable', Rule::in(['tersedia', 'tidak_tersedia', 'aktif', 'nonaktif'])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+
         $query = Produk::query();
 
-        if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->search . '%')
-                  ->orWhere('kode', 'like', '%' . $request->search . '%');
+        if (! empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('nama', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('kode', 'like', '%' . $filters['search'] . '%');
             });
         }
 
-        if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
+        if (! empty($filters['kategori'])) {
+            $query->where('kategori', $filters['kategori']);
         }
 
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status === 'aktif');
+        if (! empty($filters['status'])) {
+            $query->where('is_active', in_array($filters['status'], ['tersedia', 'aktif'], true));
         }
 
         $produk = $query->orderBy('nama')->paginate(10)->withQueryString();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'html' => view('produk._results', compact('produk'))->render(),
+            ]);
+        }
 
         return view('produk.index', compact('produk'));
     }
@@ -41,11 +56,11 @@ class ProdukController extends Controller
     {
         $validated = $request->validate([
             'nama'      => 'required|string|max:100',
-            'kode'      => 'required|string|max:20|unique:produk,kode',
             'kategori'  => ['required', Rule::in(config('produk.kategori'))],
             'harga'     => 'required|numeric|min:0',
             'stok'      => 'required|integer|min:0',
             'satuan'    => 'required|string|max:20',
+            'is_active' => 'required|boolean',
             'deskripsi' => 'nullable|string',
             'gambar'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'promo_percent' => 'nullable|integer|min:0|max:100',
@@ -56,12 +71,13 @@ class ProdukController extends Controller
             $validated['gambar'] = $request->file('gambar')->store('produk', 'public');
         }
 
-        $validated['is_active'] = $request->boolean('is_active', true);
-
         $validated['promo_percent'] = (int) $request->input('promo_percent', 0);
         $validated['promo_active']  = $request->boolean('promo_active');
 
-        Produk::create($validated);
+        DB::transaction(function () use ($validated) {
+            DB::table('produk')->orderByDesc('id')->lockForUpdate()->first();
+            Produk::create($validated);
+        });
 
         return redirect()->route('produk.index')
             ->with('success', 'Produk berhasil ditambahkan.');
@@ -81,30 +97,30 @@ class ProdukController extends Controller
     {
         $validated = $request->validate([
             'nama'      => 'required|string|max:100',
-            'kode'      => 'required|string|max:20|unique:produk,kode,' . $produk->id,
             'kategori'  => ['required', Rule::in(config('produk.kategori'))],
             'harga'     => 'required|numeric|min:0',
             'stok'      => 'required|integer|min:0',
             'satuan'    => 'required|string|max:20',
+            'is_active' => 'required|boolean',
             'deskripsi' => 'nullable|string',
             'gambar'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'promo_percent' => 'nullable|integer|min:0|max:100',
             'promo_active'  => 'nullable|boolean',
         ]);
 
+        $gambarLama = $produk->gambar;
         if ($request->hasFile('gambar')) {
-            if ($produk->gambar) {
-                \Storage::disk('public')->delete($produk->gambar);
-            }
             $validated['gambar'] = $request->file('gambar')->store('produk', 'public');
         }
-
-        $validated['is_active'] = $request->boolean('is_active');
 
         $validated['promo_percent'] = (int) $request->input('promo_percent', 0);
         $validated['promo_active']  = $request->boolean('promo_active');
 
         $produk->update($validated);
+
+        if (isset($validated['gambar']) && $gambarLama) {
+            Storage::disk('public')->delete($gambarLama);
+        }
 
         return redirect()->route('produk.index')
             ->with('success', 'Produk berhasil diperbarui.');
@@ -116,6 +132,17 @@ class ProdukController extends Controller
         $produk->update(['is_active' => false]);
 
         return redirect()->route('produk.index')
-            ->with('success', 'Produk berhasil dinonaktifkan.');
+            ->with('success', 'Produk dinonaktifkan dan tidak tersedia di POS.');
+    }
+
+    public function updateAvailability(Request $request, Produk $produk)
+    {
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $produk->update(['is_active' => $request->boolean('is_active')]);
+
+        return back()->with('success', $produk->status_ketersediaan . '.');
     }
 }

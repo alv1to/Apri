@@ -8,9 +8,20 @@ use App\Models\Produk;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PosController extends Controller
 {
+    private const ORDER_STATUS_LABELS = [
+        'pending' => 'Pending',
+        'dibayar' => 'Sudah Dibayar',
+        'sedang_dibuat' => 'Sedang Dibuat',
+        'siap_diambil' => 'Siap Diambil',
+        'selesai' => 'Selesai',
+        'cancel' => 'Cancel',
+    ];
+
     /**
      * Halaman kasir POS — landing page barista setelah login.
      * Menampilkan grid produk aktif + sidebar bundle promo aktif.
@@ -51,39 +62,103 @@ class PosController extends Controller
 
     public function orders(Request $request)
     {
-        $query = Transaksi::with(['user', 'details.produk'])
-            ->orderByDesc('tanggal_transaksi');
-
-        if ($request->filled('status')) {
-            $query->where('order_status', $request->status);
-        }
-
-        if ($request->filled('search')) {
-            $query->where('kode_transaksi', 'like', '%' . $request->search . '%');
-        }
-
-        $transaksi = $query->paginate(15)->withQueryString();
-
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(Transaksi::ORDER_STATUSES)],
+            'view' => ['nullable', Rule::in(['all'])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
         $statusCounts = Transaksi::selectRaw('order_status, COUNT(*) as total')
             ->groupBy('order_status')
             ->pluck('total', 'order_status')
             ->toArray();
 
-        return view('pos.orders', compact('transaksi', 'statusCounts'));
+        $visibleStatuses = ! empty($filters['status']) ? [$filters['status']] : Transaksi::ORDER_STATUSES;
+        $viewAll = ! empty($filters['status']) && ($filters['view'] ?? null) === 'all';
+        $ordersByStatus = [];
+
+        foreach ($visibleStatuses as $status) {
+            $query = Transaksi::with(['user', 'details.produk'])
+                ->where('order_status', $status)
+                ->when(! empty($filters['search']), function ($query) use ($filters) {
+                    $search = $filters['search'];
+                    $query->where(function ($query) use ($search) {
+                        $query->where('kode_transaksi', 'like', '%' . $search . '%')
+                            ->orWhere('nama_pelanggan', 'like', '%' . $search . '%')
+                            ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', '%' . $search . '%'));
+                    });
+                })
+                ->orderByDesc('tanggal_transaksi');
+
+            $total = (clone $query)->count();
+            $rows = $viewAll
+                ? $query->paginate(5)->withQueryString()
+                : $query->limit(5)->get();
+
+            $ordersByStatus[$status] = [
+                'rows' => $rows,
+                'total' => $total,
+            ];
+        }
+
+        $statusLabels = self::ORDER_STATUS_LABELS;
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'html' => view('pos._orders', compact('ordersByStatus', 'statusLabels', 'viewAll'))->render(),
+            ]);
+        }
+
+        return view('pos.orders', compact('ordersByStatus', 'statusCounts', 'statusLabels', 'viewAll'));
     }
 
     public function updateOrderStatus(Request $request, Transaksi $transaksi)
     {
         $validated = $request->validate([
-            'order_status' => 'required|in:pending,dibayar,selesai,batal',
+            'order_status' => ['required', Rule::in(['sedang_dibuat', 'siap_diambil', 'selesai'])],
         ]);
 
-        $transaksi->update([
-            'order_status' => $validated['order_status'],
-            'status'       => $validated['order_status'] === 'batal' ? 'batal' : 'selesai',
-        ]);
+        $nextStatus = DB::transaction(function () use ($transaksi, $validated) {
+            $order = Transaksi::lockForUpdate()->findOrFail($transaksi->id);
+            $allowedNextStatus = [
+                'dibayar' => 'sedang_dibuat',
+                'sedang_dibuat' => 'siap_diambil',
+                'siap_diambil' => 'selesai',
+            ][$order->order_status] ?? null;
 
-        return back()->with('success', 'Status pesanan berhasil diperbarui.');
+            if ($allowedNextStatus !== $validated['order_status']) {
+                throw ValidationException::withMessages([
+                    'order_status' => 'Status hanya dapat dimajukan satu tahap.',
+                ]);
+            }
+
+            $order->update(['order_status' => $allowedNextStatus]);
+
+            return $allowedNextStatus;
+        });
+
+        return redirect()->route('pos.orders')
+            ->with('success', 'Status pesanan diperbarui: ' . self::ORDER_STATUS_LABELS[$nextStatus] . '.');
+    }
+
+    public function cancelOrder(Transaksi $transaksi)
+    {
+        DB::transaction(function () use ($transaksi) {
+            $order = Transaksi::lockForUpdate()->findOrFail($transaksi->id);
+
+            if ($order->order_status === 'cancel') {
+                throw ValidationException::withMessages([
+                    'order_status' => 'Pesanan yang sudah di-cancel tidak dapat dibatalkan lagi.',
+                ]);
+            }
+
+            $order->update([
+                'order_status' => 'cancel',
+                'status' => 'cancel',
+            ]);
+        });
+
+        return redirect()->route('pos.orders')->with('success', 'Pesanan berhasil di-cancel.');
     }
 
     public function showOrder(Transaksi $transaksi)
@@ -98,12 +173,13 @@ class PosController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
+            'nama_pelanggan'   => 'nullable|string|max:100',
             'items'             => 'required|array|min:1',
             'items.*.produk_id' => 'required|exists:produk,id',
             'items.*.jumlah'    => 'required|integer|min:1',
             'bayar'             => 'required_if:payment_method,cash|numeric|min:0',
-            'payment_method'    => 'required|in:cash,qris,debit',
+            'payment_method'    => ['required', Rule::in(Transaksi::PAYMENT_METHODS)],
             'bundle_id'         => 'nullable|exists:hasil_bundle,id',
             'bundle_price'      => 'nullable|numeric|min:0',
         ]);
@@ -116,6 +192,10 @@ class PosController extends Controller
 
             foreach ($request->items as $item) {
                 $produk = Produk::lockForUpdate()->findOrFail($item['produk_id']);
+
+                if (! $produk->is_active) {
+                    throw new \Exception("Produk {$produk->nama} tidak tersedia.");
+                }
 
                 if ($produk->stok < $item['jumlah']) {
                     throw new \Exception("Stok {$produk->nama} tidak mencukupi. Tersisa {$produk->stok}.");
@@ -198,7 +278,7 @@ class PosController extends Controller
                                     }
                                 }
 
-                                // Jika tidak ada yang didistribusikan karena pembulatan, coba alokasikan sisa ke item pertama yang masih punya kapasitas
+                                // Jika tidak ada yang didistribusikan karena pembulatan, coba alokasikan sisa ke item pertama yang masih punya kapasitas.
                                 if ($distributed <= 0) {
                                     foreach ($details as $i => $d) {
                                         if ($capacities[$i] > 0 && $remaining > 0) {
@@ -222,7 +302,7 @@ class PosController extends Controller
                 }
             }
 
-            // Untuk metode non-tunai (qris/debit), anggap bayar = totalHarga
+            // Untuk metode non-tunai QRIS, anggap bayar = totalHarga.
             $bayar = $request->input('bayar');
             if ($request->payment_method !== 'cash') {
                 $bayar = $totalHarga;
@@ -235,6 +315,7 @@ class PosController extends Controller
             $transaksi = Transaksi::create([
                 'kode_transaksi'    => Transaksi::generateKode(),
                 'user_id'           => auth()->id(),
+                'nama_pelanggan'    => $validated['nama_pelanggan'] ?? null,
                 'total_harga'       => $totalHarga,
                 'bayar'             => $bayar,
                 'kembalian'         => $bayar - $totalHarga,

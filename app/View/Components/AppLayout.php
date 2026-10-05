@@ -12,7 +12,9 @@ class AppLayout extends Component
 
     public function __construct()
     {
-        $this->pendingOrderCount = Transaksi::whereIn('order_status', ['pending', 'dibayar'])->count();
+        $this->pendingOrderCount = Transaksi::whereIn('order_status', [
+            'pending', 'dibayar', 'sedang_dibuat', 'siap_diambil',
+        ])->count();
     }
 
     /**

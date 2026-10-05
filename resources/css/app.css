@@ -144,3 +144,82 @@ body::before {
     @apply rounded-2xl border px-4 py-3 text-sm;
 }
 
+.order-status-swipe {
+    position: relative;
+    width: 100%;
+    height: 42px;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: #EAF6ED;
+    touch-action: pan-y;
+}
+
+.order-status-swipe-form {
+    width: 100%;
+}
+
+.order-status-swipe-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 38px;
+    color: #064C32;
+    font-size: 11px;
+    font-weight: 600;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.order-status-swipe input[type="range"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 42px;
+    margin: 0;
+    appearance: none;
+    background: transparent;
+    cursor: ew-resize;
+}
+
+.order-status-swipe input[type="range"]::-webkit-slider-runnable-track {
+    height: 42px;
+    background: transparent;
+}
+
+.order-status-swipe input[type="range"]::-moz-range-track {
+    height: 42px;
+    background: transparent;
+}
+
+.order-status-swipe input[type="range"]::-webkit-slider-thumb {
+    width: 34px;
+    height: 34px;
+    margin-top: 4px;
+    appearance: none;
+    border: 3px solid white;
+    border-radius: 50%;
+    background: #08783F;
+    box-shadow: 0 2px 7px rgba(6, 76, 50, 0.28);
+}
+
+.order-status-swipe input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border: 3px solid white;
+    border-radius: 50%;
+    background: #08783F;
+    box-shadow: 0 2px 7px rgba(6, 76, 50, 0.28);
+}
+
+.order-status-swipe input[type="range"]:focus-visible {
+    outline: 2px solid #08783F;
+    outline-offset: -2px;
+    border-radius: 9999px;
+}
+
+.order-status-swipe.is-submitting {
+    opacity: 0.65;
+}
+

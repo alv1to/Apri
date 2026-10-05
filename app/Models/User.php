@@ -13,6 +13,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'no_telepon',
         'password',
         'role',
         'is_active',
@@ -40,5 +41,10 @@ class User extends Authenticatable
     public function isBarista(): bool
     {
         return $this->role === 'barista';
+    }
+
+    public function otps()
+    {
+        return $this->hasMany(Otp::class, 'no_telepon', 'no_telepon');
     }
 }

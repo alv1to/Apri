@@ -7,13 +7,9 @@
     @error('nama')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
 </div>
 
-{{-- Kode --}}
-<div class="mb-4">
-    <label class="block text-sm font-medium text-kopi-dark mb-1">Kode Produk <span class="text-red-500">*</span></label>
-    <input type="text" name="kode" value="{{ old('kode', $produk->kode ?? '') }}"
-           placeholder="MNM001"
-           class="input-kopi @error('kode') border-red-400 @enderror">
-    @error('kode')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+<div class="mb-4 rounded-xl border border-[#EAE6D8] bg-[#FAF7F3] px-4 py-3 text-sm text-[#5F6D63]">
+    Kode produk dibuat otomatis dan unik saat disimpan.
+    @isset($produk)<span class="ml-1 font-mono font-semibold text-[#064C32]">{{ $produk->kode }}</span>@endisset
 </div>
 
 {{-- Kategori & Satuan --}}
@@ -72,12 +68,15 @@
     @error('gambar')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
 </div>
 
-{{-- Status aktif --}}
-<div class="mb-4 flex items-center gap-2">
-    <input type="checkbox" name="is_active" id="is_active" value="1"
-           {{ old('is_active', $produk->is_active ?? true) ? 'checked' : '' }}
-           class="rounded border-gray-300 text-[#08783F]">
-    <label for="is_active" class="text-sm text-gray-700">Produk aktif (tampil di kasir POS)</label>
+{{-- Status ketersediaan --}}
+<div class="mb-4">
+    <label for="is_active" class="mb-1 block text-sm font-medium text-kopi-dark">Status Produk <span class="text-red-500">*</span></label>
+    <select name="is_active" id="is_active" class="select-kopi @error('is_active') border-red-400 @enderror" required>
+        <option value="1" {{ (string) old('is_active', isset($produk) ? (int) $produk->is_active : 1) === '1' ? 'selected' : '' }}>Tersedia</option>
+        <option value="0" {{ (string) old('is_active', isset($produk) ? (int) $produk->is_active : 1) === '0' ? 'selected' : '' }}>Tidak Tersedia</option>
+    </select>
+    @error('is_active')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+    <p class="mt-1 text-xs text-gray-400">Produk Tidak Tersedia tidak dapat dipilih untuk transaksi.</p>
 </div>
 
 {{-- Promo: persentase diskon dan aktif --}}

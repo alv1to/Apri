@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
     |----------------------------------------------------------------------
     */
     Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('role:admin')
         ->name('dashboard');
 
     /*
@@ -51,7 +52,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos/produk',  [PosController::class, 'getProduk'])->name('pos.produk');
     Route::get('/pos/orders',  [PosController::class, 'orders'])->name('pos.orders');
     Route::get('/pos/orders/{transaksi}', [PosController::class, 'showOrder'])->name('pos.orders.show');
-    Route::post('/pos/orders/{transaksi}/status', [PosController::class, 'updateOrderStatus'])->name('pos.orders.status');
+    Route::post('/pos/orders/{transaksi}/status', [PosController::class, 'updateOrderStatus'])
+        ->middleware('role:barista')
+        ->name('pos.orders.status');
+    Route::post('/pos/orders/{transaksi}/cancel', [PosController::class, 'cancelOrder'])
+        ->middleware('role:barista')
+        ->name('pos.orders.cancel');
     Route::get('/pos/struk/{transaksi}', [PosController::class, 'struk'])->name('pos.struk');
 
     /*
@@ -60,7 +66,6 @@ Route::middleware(['auth'])->group(function () {
     |----------------------------------------------------------------------
     */
     Route::get('/produk',              [ProdukController::class, 'index'])->name('produk.index');
-    Route::get('/produk/{produk}',     [ProdukController::class, 'show'])->name('produk.show');
 
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/produk/create',          [ProdukController::class, 'create'])->name('produk.create');
@@ -68,7 +73,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/produk/{produk}/edit',   [ProdukController::class, 'edit'])->name('produk.edit');
         Route::put('/produk/{produk}',        [ProdukController::class, 'update'])->name('produk.update');
         Route::delete('/produk/{produk}',     [ProdukController::class, 'destroy'])->name('produk.destroy');
+        Route::patch('/produk/{produk}/availability', [ProdukController::class, 'updateAvailability'])->name('produk.availability');
     });
+    Route::get('/produk/{produk}', [ProdukController::class, 'show'])->name('produk.show');
 
     /*
     |----------------------------------------------------------------------

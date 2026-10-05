@@ -13,6 +13,7 @@ class UserSeeder extends Seeder
         User::create([
             'name'      => 'Administrator',
             'email'     => 'admin@kafe.com',
+            'no_telepon' => null,
             'password'  => Hash::make('password'),
             'role'      => 'admin',
             'is_active' => true,
@@ -21,6 +22,7 @@ class UserSeeder extends Seeder
         User::create([
             'name'      => 'Barista Satu',
             'email'     => 'barista@kafe.com',
+            'no_telepon' => null,
             'password'  => Hash::make('password'),
             'role'      => 'barista',
             'is_active' => true,

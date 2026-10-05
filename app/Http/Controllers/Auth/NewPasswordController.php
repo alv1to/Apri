@@ -37,6 +37,17 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $admin = User::where('email', $request->input('email'))
+            ->where('role', 'admin')
+            ->where('is_active', true)
+            ->exists();
+
+        if (! $admin) {
+            throw ValidationException::withMessages([
+                'email' => 'Token tidak valid atau sudah kedaluwarsa.',
+            ]);
+        }
+
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
         // database. Otherwise we will parse the error and return the response.

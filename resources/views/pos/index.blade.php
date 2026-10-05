@@ -14,7 +14,12 @@
             {{-- Bundle promo aktif (info untuk barista) --}}
             @if($bundleAktif->count())
             <div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                <p class="text-xs font-semibold text-amber-700 mb-2">💡 Promosi Bundle Aktif — Sarankan ke pelanggan:</p>
+                <p class="mb-2 flex items-center gap-2 text-xs font-semibold text-amber-700">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18h6m-5 4h4m-6-8a7 7 0 1110 0c-1.2 1-2 2.2-2 4h-6c0-1.8-.8-3-2-4z"/>
+                    </svg>
+                    Promosi Bundle Aktif — Sarankan ke pelanggan:
+                </p>
                 <div class="flex flex-wrap gap-2">
                     @foreach($bundleAktif as $b)
                     <div class="bg-white border border-amber-200 rounded-lg px-3 py-1.5 text-xs">
@@ -43,8 +48,14 @@
 
             {{-- Pencarian & filter kategori --}}
             <div class="flex flex-wrap gap-2 mb-4">
-                <input type="text" id="cari-produk" placeholder="🔍 Cari produk..."
-                       class="input-kopi flex-1 min-w-48">
+                <div class="relative min-w-48 flex-1">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" stroke-width="2"/>
+                        <path stroke-linecap="round" stroke-width="2" d="m20 20-4-4"/>
+                    </svg>
+                    <input type="text" id="cari-produk" placeholder="Cari produk..."
+                              class="input-kopi w-full pl-12">
+                </div>
 
                 <button onclick="filterKategori('')"
                         class="btn-kopi text-xs rounded-full"
@@ -104,7 +115,9 @@
             </div>
             @empty
             <div class="text-center py-16 text-gray-400">
-                <p class="text-4xl mb-3">🛒</p>
+                <svg class="mx-auto mb-3 h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l2.4 12.2a2 2 0 002 1.6h8.8a2 2 0 002-1.6L22 8H6m5 13a1 1 0 100-2 1 1 0 000 2zm7 0a1 1 0 100-2 1 1 0 000 2z"/>
+                </svg>
                 <p>Belum ada produk aktif.</p>
             </div>
             @endforelse
@@ -135,6 +148,13 @@
                 <form method="POST" action="{{ route('pos.store') }}" id="form-pos" class="px-4 py-4 border-t space-y-3">
                     @csrf
 
+                    <div>
+                        <label for="nama_pelanggan" class="text-xs text-gray-500 font-medium">Nama Pelanggan (opsional)</label>
+                        <input type="text" name="nama_pelanggan" id="nama_pelanggan" maxlength="100"
+                               value="{{ old('nama_pelanggan') }}" autocomplete="name"
+                               class="input-kopi mt-1" placeholder="Nama pelanggan">
+                    </div>
+
                     <div class="flex justify-between text-base font-bold text-gray-900">
                         <span>Total</span>
                         <span id="total-display">Rp 0</span>
@@ -145,7 +165,6 @@
                         <select name="payment_method" id="payment_method" class="select-kopi">
                             <option value="cash">Tunai</option>
                             <option value="qris">QRIS</option>
-                            <option value="debit">Kartu Debit</option>
                         </select>
                     </div>
 

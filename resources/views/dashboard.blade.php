@@ -122,7 +122,12 @@
                     </span>
                 </div>
                 @empty
-                <p class="text-sm text-gray-400 text-center py-4">Semua stok aman ✓</p>
+                <p class="flex items-center justify-center gap-2 py-4 text-center text-sm text-gray-400">
+                    <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Semua stok aman
+                </p>
                 @endforelse
             </div>
 

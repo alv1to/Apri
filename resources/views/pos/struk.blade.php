@@ -7,7 +7,7 @@
         <div class="card-kopi rounded-[28px] p-6" id="struk">
 
             <div class="text-center mb-5 pb-4 border-b border-dashed">
-                <h1 class="text-lg font-bold text-gray-800">Dashboard Promosi</h1>
+                <h1 class="text-lg font-bold text-gray-800">KOPI KAMA</h1>
                 <p class="text-xs text-gray-400 mt-1">{{ now()->format('d M Y, H:i') }}</p>
             </div>
 
@@ -57,7 +57,7 @@
                 @endif
                 <div class="flex justify-between text-gray-500">
                     <span>Metode Pembayaran</span>
-                    <span class="capitalize">{{ $transaksi->payment_method ?? 'cash' }}</span>
+                    <span>{{ $transaksi->payment_method_label }}</span>
                 </div>
                 <div class="flex justify-between text-gray-500">
                     <span>Bayar</span>

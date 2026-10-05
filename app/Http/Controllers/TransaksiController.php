@@ -7,6 +7,7 @@ use App\Models\Produk;
 use App\Models\DetailTransaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class TransaksiController extends Controller
 {
@@ -51,7 +52,7 @@ class TransaksiController extends Controller
             'items.*.produk_id' => 'required|exists:produk,id',
             'items.*.jumlah'    => 'required|integer|min:1',
             'bayar'             => 'required_if:payment_method,cash|numeric|min:0',
-            'payment_method'    => 'required|in:cash,qris,debit',
+            'payment_method'    => ['required', Rule::in(Transaksi::PAYMENT_METHODS)],
         ]);
 
         DB::beginTransaction();
@@ -61,6 +62,10 @@ class TransaksiController extends Controller
 
             foreach ($request->items as $item) {
                 $produk = Produk::lockForUpdate()->findOrFail($item['produk_id']);
+
+                if (! $produk->is_active) {
+                    throw new \Exception("Produk {$produk->nama} tidak tersedia.");
+                }
 
                 if ($produk->stok < $item['jumlah']) {
                     throw new \Exception("Stok {$produk->nama} tidak mencukupi. Tersisa {$produk->stok}.");

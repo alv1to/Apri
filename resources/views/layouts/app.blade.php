@@ -99,7 +99,9 @@
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-[#1D2A1F] transition hover:bg-[#F3F8F1] hover:text-[#0A5C36]">
-                                <span aria-hidden="true">🚪</span>
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5m5 5H3"/>
+                                </svg>
                                 Keluar
                             </button>
                         </form>
@@ -113,7 +115,11 @@
                     rounded-lg text-sm flex justify-between items-center" id="flash-success">
             <span>{{ session('success') }}</span>
             <button onclick="document.getElementById('flash-success').remove()"
-                    class="text-green-600 hover:text-green-800 ml-3 font-bold">✕</button>
+                    aria-label="Tutup pesan sukses" class="ml-3 text-green-600 hover:text-green-800">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"/>
+                </svg>
+            </button>
         </div>
         @endif
 
@@ -122,7 +128,11 @@
                     rounded-lg text-sm flex justify-between items-center" id="flash-error">
             <span>{{ $errors->first() }}</span>
             <button onclick="document.getElementById('flash-error').remove()"
-                    class="text-red-600 hover:text-red-800 ml-3 font-bold">✕</button>
+                    aria-label="Tutup pesan error" class="ml-3 text-red-600 hover:text-red-800">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"/>
+                </svg>
+            </button>
         </div>
         @endif
 

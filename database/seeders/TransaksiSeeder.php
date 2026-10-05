@@ -79,10 +79,13 @@ class TransaksiSeeder extends Seeder
             $transaksi = Transaksi::create([
                 'kode_transaksi'    => $kode,
                 'user_id'           => $barista->id,
+                'nama_pelanggan'    => null,
                 'total_harga'       => $totalHarga,
                 'bayar'             => $bayar,
                 'kembalian'         => $bayar - $totalHarga,
+                'payment_method'    => 'cash',
                 'status'            => 'selesai',
+                'order_status'      => 'selesai',
                 'tanggal_transaksi' => $tanggal,
             ]);
 
