@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    color-scheme: light;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #F8F5EF;
+    color: #1D2A1F;
+    --font-display: 'Fraunces', Georgia, serif;
+    --kama-cream: #F8F5EF;
+    --kama-sand: #F3E9D9;
+    --kama-green: #08783F;
+    --kama-deep: #064C32;
+    --kama-lime: #B9E95C;
+    --kama-olive: #73B85B;
+    --kama-ink: #1D2A1F;
+    --kama-muted: #5F6D63;
+    --kama-border: #E6E5D6;
+    --kama-surface: #FFFFFF;
+    --kama-danger: #B64545;
+    --kama-warning: #C98A2C;
+    --kama-info: #2F6F79;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @apply bg-[#F5F2EA] text-[#1D2A1F];
+}
+
+.font-kopi-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.04em;
+}
+
+.kama-gradient {
+    background: radial-gradient(circle at 50% 28%, rgba(226, 247, 151, 0.95) 0%, rgba(185, 233, 92, 0.82) 18%, rgba(107, 185, 90, 0.88) 50%, rgba(9, 120, 63, 1) 100%);
+}
+
+.kama-grain {
+    position: relative;
+    overflow: hidden;
+}
+
+.kama-grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.08;
+    background-image: radial-gradient(rgba(0,0,0,0.16) 0.7px, transparent 0.8px);
+    background-size: 8px 8px;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(185, 233, 92, 0.10), transparent 20%),
+                radial-gradient(circle at bottom right, rgba(9, 120, 63, 0.10), transparent 22%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.btn-kopi {
+    @apply inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold text-white bg-[#08783F] hover:bg-[#064C32] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#08783F]/20;
+}
+
+.btn-kopi-secondary {
+    @apply inline-flex items-center justify-center rounded-2xl border border-[#D9E2D1] bg-white px-4 py-2.5 text-sm font-semibold text-[#1D2A1F] hover:bg-[#F7F3EC] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#08783F]/15;
+}
+
+.btn-kopi-danger {
+    @apply inline-flex items-center justify-center rounded-2xl bg-[#B64545] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#913838] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#B64545]/20;
+}
+
+.input-kopi {
+    @apply w-full rounded-2xl border border-[#DDE4D6] bg-white px-4 py-3 text-sm text-[#1D2A1F] placeholder:text-[#7A817A] focus:border-[#08783F] focus:outline-none focus:ring-2 focus:ring-[#08783F]/15;
+}
+
+.select-kopi {
+    @apply w-full rounded-2xl border border-[#DDE4D6] bg-white px-4 py-3 text-sm text-[#1D2A1F] focus:border-[#08783F] focus:outline-none focus:ring-2 focus:ring-[#08783F]/15;
+}
+
+.textarea-kopi {
+    @apply w-full rounded-2xl border border-[#DDE4D6] bg-white px-4 py-3 text-sm text-[#1D2A1F] focus:border-[#08783F] focus:outline-none focus:ring-2 focus:ring-[#08783F]/15;
+}
+
+.badge-kopi {
+    @apply inline-flex items-center rounded-full bg-[#EEF8ED] px-2.5 py-1 text-[11px] font-semibold text-[#08783F];
+}
+
+.card-kopi {
+    @apply rounded-[26px] border border-[#EAE6D8] bg-white;
+}
+
+.bg-kopi-header {
+    background: linear-gradient(135deg, #064C32 0%, #0B6B3F 40%, #0E7D46 100%);
+}
+
+.text-kopi-dark {
+    color: #064C32;
+}
+
+.text-kopi {
+    color: #08783F;
+}
+
+.btn-kopi-outline {
+    @apply inline-flex items-center justify-center rounded-2xl border border-[#08783F] bg-white px-4 py-2.5 text-sm font-semibold text-[#064C32] hover:bg-[#F3F8F1] transition-colors duration-200;
+}
+
+.logo-brand {
+    width: 100%;
+    max-width: 150px;
+    object-fit: contain;
+    display: block;
+}
+
+.nav-surface {
+    background: linear-gradient(180deg, #fdfcf9 0%, #f4f1e8 100%);
+}
+
+.sidebar-item-active {
+    background: linear-gradient(135deg, rgba(9,120,63,0.18), rgba(9,120,63,0.10));
+    color: #064C32;
+    border-color: rgba(9,120,63,0.12);
+}
+
+.table-kopi th {
+    @apply bg-[#F5F7F1] text-[#405045] text-[11px] uppercase tracking-[0.12em] font-semibold;
+}
+
+.table-kopi td {
+    @apply border-b border-[#EEF0E5] text-sm text-[#2A332D];
+}
+
+.alert-kopi {
+    @apply rounded-2xl border px-4 py-3 text-sm;
+}
+
