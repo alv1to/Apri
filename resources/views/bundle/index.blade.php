@@ -58,185 +58,138 @@
             </form>
         </div>
 
-        {{-- Statistik --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="card-kopi p-4 text-center">
-                <p class="text-xs text-[#6B7280] uppercase tracking-wider">Total Rules</p>
-                <p class="text-3xl font-bold text-[#08783F] mt-1">{{ $stats['total_bundle'] }}</p>
-            </div>
-            <div class="card-kopi p-4 text-center">
-                <p class="text-xs text-[#6B7280] uppercase tracking-wider">Bundle Aktif</p>
-                <p class="text-3xl font-bold text-[#064C32] mt-1">{{ $stats['bundle_aktif'] }}</p>
-            </div>
-            <div class="card-kopi p-4 text-center">
-                <p class="text-xs text-[#6B7280] uppercase tracking-wider">Lift Tertinggi</p>
-                <p class="text-3xl font-bold text-[#C98A2C] mt-1">{{ number_format($stats['lift_tertinggi'], 2) }}</p>
-            </div>
-            <div class="card-kopi p-4 text-center">
-                <p class="text-xs text-[#6B7280] uppercase tracking-wider">Avg Confidence</p>
-                <p class="text-3xl font-bold text-[#0E7D46] mt-1">{{ number_format($stats['avg_confidence'] * 100, 1) }}%</p>
-            </div>
-        </div>
+# Deskripsi Halaman Aplikasi Association Rule – Algoritma Apriori
 
-        {{-- Tabel rules --}}
-        <div class="card-kopi overflow-hidden">
-            <div class="px-6 py-4 border-b flex justify-between items-center">
-                <h3 class="font-semibold text-gray-800">Hasil Association Rules</h3>
-                <span class="text-xs text-gray-400">Diurutkan berdasarkan lift tertinggi</span>
-            </div>
+Halaman ini adalah aplikasi web berbasis PHP dan digunakan untuk menjalankan serta menampilkan hasil **proses data mining dengan algoritma Apriori**. Data yang dianalisis adalah transaksi penjualan tanaman hias (varietas *Alocasia*, *Philodendron*, *Monstera*, *Anthurium*). Hasil yang diperoleh berupa pola pembelian yang sering muncul bersamaan.
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-100 text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jika beli</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rekomendasikan</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Support</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Confidence</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Lift</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Frekuensi</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        @forelse($bundle as $item)
-                        <tr class="hover:bg-gray-50 {{ $item->is_aktif ? 'bg-green-50' : '' }}">
-                            <td class="px-4 py-3">
-                                <div class="flex flex-wrap gap-1">
-                                    @foreach($item->nama_antecedent as $n)
-                                    <span class="bg-[#EAF7ED] text-[#0E7D46] text-xs px-2 py-0.5 rounded-full">{{ $n }}</span>
-                                    @endforeach
-                                </div>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex flex-wrap gap-1">
-                                    @foreach($item->nama_consequent as $n)
-                                    <span class="bg-[#F9F2E6] text-[#A56617] text-xs px-2 py-0.5 rounded-full">{{ $n }}</span>
-                                    @endforeach
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="text-sm font-medium text-gray-700">{{ $item->support_persen }}</div>
-                                <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
-                                    <div class="bg-[#08783F] h-1 rounded-full" style="width: {{ min(100, $item->support * 500) }}%"></div>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="text-sm font-medium text-gray-700">{{ $item->confidence_persen }}</div>
-                                <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
-                                    <div class="bg-[#C98A2C] h-1 rounded-full" style="width: {{ $item->confidence * 100 }}%"></div>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold
-                                    {{ $item->lift_color === 'green' ? 'bg-green-100 text-green-800' : '' }}
-                                    {{ $item->lift_color === 'amber' ? 'bg-amber-100 text-amber-800' : '' }}
-                                    {{ $item->lift_color === 'red'   ? 'bg-red-100 text-red-700'   : '' }}">
-                                    {{ number_format($item->lift, 2) }} ({{ $item->lift_label }})
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-center text-gray-600">{{ $item->frekuensi }}x</td>
-                            <td class="px-4 py-3 text-center">
-                                @if($item->is_aktif)
-                                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">Aktif</span>
-                                @else
-                                <span class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full">Nonaktif</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex justify-center gap-2">
-                                    <a href="{{ route('bundle.show', $item) }}"
-                                       class="text-[#08783F] hover:text-[#064C32] text-xs font-medium">Detail</a>
+---
 
-                                    <button type="button"
-                                            onclick="toggleAktif({{ $item->id }}, {{ $item->is_aktif ? 'true' : 'false' }}, '{{ addslashes(implode(' + ', $item->nama_antecedent) . ' → ' . implode(' + ', $item->nama_consequent)) }}')"
-                                            class="text-xs font-medium {{ $item->is_aktif ? 'text-red-500 hover:text-red-700' : 'text-green-600 hover:text-green-800' }}">
-                                        {{ $item->is_aktif ? 'Nonaktifkan' : 'Aktifkan' }}
-                                    </button>
+## 1. Pembentukan Itemset 1
 
-                                    @if(!$item->is_aktif)
-                                    <form method="POST" action="{{ route('bundle.destroy', $item) }}"
-                                          onsubmit="return confirm('Hapus rule ini?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-red-400 hover:text-red-600 text-xs font-medium">Hapus</button>
-                                    </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="px-4 py-16 text-center text-gray-400">
-                                Belum ada hasil analisis. Jalankan Apriori di atas.
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="px-4 py-3 border-t">{{ $bundle->links() }}</div>
-        </div>
-    </div>
+Tabel **Itemset 1** menampilkan 12 item beserta jumlah kemunculan dan nilai *support*. Item yang nilai supportnya memenuhi batas minimum diberi label **Lolos**, sedangkan sisanya **Tidak Lolos**.
 
-{{-- Modal aktifkan --}}
-<div id="modal-aktifkan" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div class="card-kopi p-6 w-full max-w-md mx-4">
-        <h3 class="font-semibold text-[#1F2937] mb-1">Aktifkan Bundle Promosi</h3>
-        <p class="text-sm text-[#6B7280] mb-5" id="modal-nama-bundle"></p>
-        <form method="POST" id="form-aktifkan">
-            @csrf
-            <div class="mb-5">
-                <label class="block text-sm font-medium text-kopi-dark mb-1">Harga Bundle (Rp) — opsional</label>
-                <input type="number" name="harga_bundle" min="0" step="500"
-                       class="input-kopi"
-                       placeholder="Kosongkan untuk harga normal">
-                <p class="text-xs text-[#6B7280] mt-1">Isi jika ingin memberikan harga spesial untuk bundle ini.</p>
-            </div>
-            <div class="flex gap-3">
-                <button type="submit"
-                        class="btn-kopi">
-                    Aktifkan
-                </button>
-                <button type="button" onclick="tutupModal()"
-                        class="btn-kopi-secondary">
-                    Batal
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+| No | Item | Jumlah | Support (%) | Keterangan |
+|----|------|--------|-------------|------------|
+| 1 | Alocasia Dragon Silver | 57 | 50,00 | Lolos |
+| 2 | Alocasia Black Velvet | 39 | 34,21 | Lolos |
+| 3 | Alocasia Amazonica | 65 | 57,02 | Lolos |
+| 4 | Alocasia Golden Bone | 3 | 2,63 | Tidak Lolos |
+| 5 | Alocasia Reginae Miri | 30 | 26,32 | Lolos |
+| 6 | Philodendron Giganteum Marble Variage | 2 | 1,75 | Tidak Lolos |
+| 7 | Alocasia Melo | 2 | 1,75 | Tidak Lolos |
+| 8 | Alocasia Watsoniana | 2 | 1,75 | Tidak Lolos |
+| 9 | Alocasia Black Maharani | 1 | 0,88 | Tidak Lolos |
+| 10 | Monstera Adansonii Variegata (Lokal) | 1 | 0,88 | Tidak Lolos |
+| 11 | Anthurium Jemani | 1 | 0,88 | Tidak Lolos |
+| 12 | Philodendron White Princess | 1 | 0,88 | Tidak Lolos |
 
-<script>
-// Spinner saat generate
-document.getElementById('form-generate').addEventListener('submit', function () {
-    document.getElementById('btn-label').textContent = 'Memproses...';
-    document.getElementById('spinner').classList.remove('hidden');
-    document.getElementById('btn-generate').disabled = true;
-});
+Dari tabel tersebut, ada **4 item yang lolos** dan masuk ke tabel **Itemset 1 yang lolos**: Dragon Silver, Black Velvet, Amazonica, dan Reginae Miri.
 
-function toggleAktif(id, isAktif, nama) {
-    if (isAktif) {
-        if (!confirm('Nonaktifkan bundle "' + nama + '"?')) return;
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/bundle/' + id + '/aktifkan';
-        form.innerHTML = `<input type="hidden" name="_token" value="{{ csrf_token() }}">`;
-        document.body.appendChild(form);
-        form.submit();
-        return;
-    }
-    document.getElementById('modal-nama-bundle').textContent = nama;
-    document.getElementById('form-aktifkan').action = '/bundle/' + id + '/aktifkan';
-    document.getElementById('modal-aktifkan').classList.remove('hidden');
-}
+---
 
-function tutupModal() {
-    document.getElementById('modal-aktifkan').classList.add('hidden');
-}
+## 2. Pembentukan Itemset 2
 
-document.getElementById('modal-aktifkan').addEventListener('click', function (e) {
-    if (e.target === this) tutupModal();
-});
-</script>
+Item yang lolos dikombinasikan menjadi pasangan (2 item).
+
+| No | Item 1 | Item 2 | Jumlah | Support (%) | Keterangan |
+|----|--------|--------|--------|-------------|------------|
+| 1 | Alocasia Dragon Silver | Alocasia Black Velvet | 26 | 22,81 | Lolos |
+| 2 | Alocasia Dragon Silver | Alocasia Amazonica | 25 | 21,93 | Lolos |
+| 3 | Alocasia Dragon Silver | Alocasia Reginae Miri | 3 | 2,63 | Tidak Lolos |
+| 4 | Alocasia Black Velvet | Alocasia Amazonica | 20 | 17,54 | Lolos |
+| 5 | Alocasia Black Velvet | Alocasia Reginae Miri | 0 | 0,00 | Tidak Lolos |
+| 6 | Alocasia Amazonica | Alocasia Reginae Miri | 23 | 20,18 | Lolos |
+
+Terdapat **4 pasangan** yang lolos dan ditampilkan pada tabel **Itemset 2 yang lolos**.
+
+---
+
+## 3. Pembentukan Itemset 3
+
+Pasangan yang lolos dikembangkan menjadi kombinasi 3 item.
+
+| No | Item 1 | Item 2 | Item 3 | Jumlah | Support (%) | Keterangan |
+|----|--------|--------|--------|--------|-------------|------------|
+| 1 | Alocasia Dragon Silver | Alocasia Black Velvet | Alocasia Amazonica | 7 | 6,14 | Tidak Lolos |
+| 2 | Alocasia Dragon Silver | Alocasia Amazonica | Alocasia Reginae Miri | 1 | 0,88 | Tidak Lolos |
+| 3 | Alocasia Dragon Silver | Alocasia Black Velvet | Alocasia Reginae Miri | 0 | 0,00 | Tidak Lolos |
+| 4 | Alocasia Amazonica | Alocasia Black Velvet | Alocasia Reginae Miri | 0 | 0,00 | Tidak Lolos |
+
+Semua kombinasi **tidak lolos**, sehingga tabel **Itemset 3 yang lolos** kosong. Aplikasi lalu menampilkan notifikasi **"Proses mining selesai"**, dan proses berhenti pada itemset 3.
+
+---
+
+## 4. Perhitungan Confidence
+
+### Confidence dari Itemset 3
+
+Tabel kosong, karena tidak ada itemset 3 yang lolos.
+
+### Confidence dari Itemset 2
+
+| No | X ⇒ Y | Support X ∪ Y | Support X | Confidence (%) | Keterangan |
+|----|-------|---------------|-----------|----------------|------------|
+| 1 | Dragon Silver ⇒ Black Velvet | 22,81 | 50,00 | 45,61 | Lolos |
+| 2 | Black Velvet ⇒ Dragon Silver | 22,81 | 34,21 | 66,67 | Lolos |
+| 3 | Dragon Silver ⇒ Amazonica | 21,93 | 50,00 | 43,86 | Lolos |
+| 4 | Amazonica ⇒ Dragon Silver | 21,93 | 57,02 | 38,46 | Tidak Lolos |
+| 5 | Black Velvet ⇒ Amazonica | 17,54 | 34,21 | 51,28 | Lolos |
+| 6 | Amazonica ⇒ Black Velvet | 17,54 | 57,02 | 30,77 | Tidak Lolos |
+| … | … | … | … | … | … |
+| 8 | Reginae Miri ⇒ Amazonica | 20,18 | 26,32 | 76,67 | Lolos |
+
+Confidence dihitung dengan rumus:
+
+$$\text{Confidence}(X \Rightarrow Y) = \frac{\text{Support}(X \cup Y)}{\text{Support}(X)}$$
+
+---
+
+## 5. Rule Asosiasi yang Terbentuk
+
+Rule yang lolos kemudian diuji dengan **nilai uji lift** untuk menentukan jenis korelasinya.
+
+| No | X ⇒ Y | Confidence (%) | Nilai Uji Lift | Korelasi Rule |
+|----|-------|----------------|----------------|---------------|
+| 1 | Dragon Silver ⇒ Black Velvet | 45,61 | 1,33 | Korelasi positif |
+| 2 | Black Velvet ⇒ Dragon Silver | 66,67 | 1,33 | Korelasi positif |
+| 3 | Dragon Silver ⇒ Amazonica | 43,86 | 0,77 | Korelasi negatif |
+| 4 | Black Velvet ⇒ Amazonica | 51,28 | 0,90 | Korelasi negatif |
+| 5 | Reginae Miri ⇒ Amazonica | 76,67 | 1,34 | Korelasi positif |
+
+Interpretasi nilai lift:
+
+- **Lift > 1** → korelasi positif (item saling mendorong pembelian).
+- **Lift < 1** → korelasi negatif (item cenderung tidak dibeli bersamaan).
+
+Di bawah tabel ini terdapat juga **Grafik Rule Asosiasi yang terbentuk** (*Multi Line*).
+
+---
+
+## 6. Hasil Analisis
+
+Pada bagian ini, setiap rule diterjemahkan ke dalam kalimat yang mudah dipahami, dilengkapi tombol **Print** untuk mencetak hasil:
+
+1. Jika konsumen membeli **Alocasia Dragon Silver**, maka konsumen juga akan membeli **Alocasia Black Velvet**.
+2. Jika konsumen membeli **Alocasia Black Velvet**, maka konsumen juga akan membeli **Alocasia Dragon Silver**.
+3. Jika konsumen membeli **Alocasia Dragon Silver**, maka konsumen juga akan membeli **Alocasia Amazonica**.
+4. Jika konsumen membeli **Alocasia Black Velvet**, maka konsumen juga akan membeli **Alocasia Amazonica**.
+5. Jika konsumen membeli **Alocasia Reginae Miri**, maka konsumen juga akan membeli **Alocasia Amazonica**.
+
+Halaman ini juga memuat bagian **Perhitungan Itemset 1** (URL `view_rule&id_process=6`) yang menampilkan hasil perhitungan dengan data berbeda (misalnya *Alocasia Dragon Silver (Bibit)* dengan jumlah 3 dan support 60,00).
+
+---
+
+## Ringkasan Alur Proses
+
+```
+Itemset 1 → Itemset 1 lolos → Itemset 2 → Itemset 2 lolos
+   → Itemset 3 (tidak ada yang lolos) → Proses mining selesai
+   → Hitung Confidence → Uji Lift → Rule Asosiasi → Hasil Analisis
+```
+
+## Catatan Penting
+
+- **Rule terkuat**: *Alocasia Reginae Miri ⇒ Alocasia Amazonica* (confidence 76,67% dan lift 1,34).
+- **Rule yang kurang layak** untuk dijadikan strategi penjualan: yang melibatkan Amazonica sebagai konsekuen dari Dragon Silver dan Black Velvet, karena lift < 1 (korelasi negatif), meskipun confidence-nya cukup tinggi.
+- Di halaman "Hasil Analisis", kelima rule ditampilkan bersama, termasuk dua rule berkorelasi negatif. Sebaiknya hal ini dijelaskan atau difilter dalam deskripsi Anda.
 </x-app-layout>
